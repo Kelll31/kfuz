@@ -14,7 +14,8 @@ class Colors:
     UNDERLINE = '\033[4m'
 
 def print_separator():
-    print(f"{Colors.OKCYAN}{'-' * 50}{Colors.ENDC}")
+    print()
+    print(f"{Colors.OKCYAN}{'=' * 50}{Colors.ENDC}")
 
 def get_status_color(status_code):
     if 200 <= status_code < 300:
