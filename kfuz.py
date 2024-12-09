@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
 import requests
 import argparse
+import signal
+import sys
 
 # ANSI escape codes for colors
 class Colors:
@@ -55,7 +58,13 @@ def fuzz_url(base_url, wordlist=None, range_numbers=None, headers=None, cookies=
             print_separator()
             print(f"{Colors.FAIL}Ошибка с URL {url}: {e}{Colors.ENDC}")
 
+def signal_handler(sig, frame):
+    print(f"\n{Colors.WARNING}Поймал прерывание с клавиатуры, завершаю работу...{Colors.ENDC}")
+    sys.exit(0)
+
 def main():
+    signal.signal(signal.SIGINT, signal_handler)
+
     parser = argparse.ArgumentParser(description="Скрипт для фазинга веб-страниц.")
     parser.add_argument('-u', '--url', required=True, help='Базовый URL для фазинга с точкой вставки FUZZ')
     parser.add_argument('-w', '--wordlist', help='Путь к файлу списка слов')
