@@ -50,7 +50,7 @@ Examples
     
 Фазинг с использованием диапазона чисел:
 
-    python fuzzing_script.py -u "http://example.com/FUZZ" -r 1-100
+    python fuzzing_script.py -u "http://example.com/FUZZ" -r "1-100"
 
 Использование пользовательских заголовков и cookies:
 
