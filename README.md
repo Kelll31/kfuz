@@ -21,6 +21,8 @@ Install
 
 Usage
 -----
+![2024-12-09_10-59-11](https://github.com/user-attachments/assets/7292184c-5fb2-4ac1-9b2c-3582cd8e65e4)
+
 
 Запустите скрипт с необходимыми параметрами:
 
