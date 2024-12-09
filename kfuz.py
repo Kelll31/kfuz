@@ -16,6 +16,16 @@ class Colors:
 def print_separator():
     print(f"{Colors.OKCYAN}{'-' * 50}{Colors.ENDC}")
 
+def get_status_color(status_code):
+    if 200 <= status_code < 300:
+        return Colors.OKGREEN
+    elif 300 <= status_code < 400:
+        return Colors.OKBLUE
+    elif 400 <= status_code < 500:
+        return Colors.WARNING
+    else:
+        return Colors.FAIL
+
 def fuzz_url(base_url, wordlist=None, range_numbers=None, headers=None, cookies=None, method='GET', show_all=False, hide_responses=None):
     if 'FUZZ' not in base_url:
         raise ValueError("Базовый URL должен содержать точку вставки 'FUZZ'.")
@@ -35,8 +45,9 @@ def fuzz_url(base_url, wordlist=None, range_numbers=None, headers=None, cookies=
             response = requests.request(method, url, headers=headers, cookies=cookies)
             if hide_responses and response.status_code in hide_responses:
                 continue
+            status_color = get_status_color(response.status_code)
             print_separator()
-            print(f"{Colors.BOLD}URL:{Colors.ENDC} {url} | {Colors.BOLD}Код:{Colors.ENDC} {response.status_code}")
+            print(f"{Colors.BOLD}URL:{Colors.ENDC} {Colors.FAIL}{url}{Colors.ENDC} | {Colors.BOLD}Код:{Colors.ENDC} {status_color}{response.status_code}{Colors.ENDC}")
             if show_all:
                 print(f"{Colors.OKGREEN}{response.text}{Colors.ENDC}")
         except requests.RequestException as e:
