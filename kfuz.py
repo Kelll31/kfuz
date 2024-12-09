@@ -1,6 +1,21 @@
 import requests
 import argparse
 
+# ANSI escape codes for colors
+class Colors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+def print_separator():
+    print(f"{Colors.OKCYAN}{'-' * 50}{Colors.ENDC}")
+
 def fuzz_url(base_url, wordlist=None, range_numbers=None, headers=None, cookies=None, method='GET', show_all=False, hide_responses=None):
     if 'FUZZ' not in base_url:
         raise ValueError("Базовый URL должен содержать точку вставки 'FUZZ'.")
@@ -20,11 +35,13 @@ def fuzz_url(base_url, wordlist=None, range_numbers=None, headers=None, cookies=
             response = requests.request(method, url, headers=headers, cookies=cookies)
             if hide_responses and response.status_code in hide_responses:
                 continue
-            print(f"URL: {url} | Код: {response.status_code}")
+            print_separator()
+            print(f"{Colors.BOLD}URL:{Colors.ENDC} {url} | {Colors.BOLD}Код:{Colors.ENDC} {response.status_code}")
             if show_all:
-                print(response.text)
+                print(f"{Colors.OKGREEN}{response.text}{Colors.ENDC}")
         except requests.RequestException as e:
-            print(f"Ошибка с URL {url}: {e}")
+            print_separator()
+            print(f"{Colors.FAIL}Ошибка с URL {url}: {e}{Colors.ENDC}")
 
 def main():
     parser = argparse.ArgumentParser(description="Скрипт для фазинга веб-страниц.")
