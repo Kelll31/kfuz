@@ -40,7 +40,7 @@ def get_status_color(status_code):
     else:
         return Colors.FAIL
 
-def fuzz_url(base_url, wordlist=None, range_numbers=None, headers=None, cookies=None, method='GET', show_all=False, hide_responses=None):
+def fuzz_url(base_url, wordlist=None, range_numbers=None, headers=None, cookies=None, method='GET', show_all=False, hide_responses=None, keys=None):
     if 'FUZZ' not in base_url:
         raise ValueError("Базовый URL должен содержать точку вставки 'FUZZ'.")
 
@@ -63,10 +63,17 @@ def fuzz_url(base_url, wordlist=None, range_numbers=None, headers=None, cookies=
             print_separator()
             print(f"{Colors.BOLD}URL:{Colors.ENDC} {Colors.FAIL}{url}{Colors.ENDC} | {Colors.BOLD}Код:{Colors.ENDC} {status_color}{response.status_code}{Colors.ENDC}")
             if show_all:
-                print(f"{Colors.OKGREEN}{response.text}{Colors.ENDC}")
+                if keys:
+                    # Extract and display only the specified keys
+                    response_json = response.json()
+                    filtered_response = {key: response_json.get(key) for key in keys}
+                    print(f"{Colors.OKGREEN}{filtered_response}{Colors.ENDC}")
+                else:
+                    print(f"{Colors.OKGREEN}{response.text}{Colors.ENDC}")
         except requests.RequestException as e:
             print_separator()
             print(f"{Colors.FAIL}Ошибка с URL {url}: {e}{Colors.ENDC}")
+    
 
 def signal_handler(sig, frame):
     print(f"\n{Colors.WARNING}Поймал прерывание с клавиатуры, завершаю работу...{Colors.ENDC}")
@@ -84,7 +91,7 @@ def main():
     parser.add_argument('-X', '--method', default='GET', help='Используемый HTTP-метод (по умолчанию: GET)')
     parser.add_argument('-sa', '--show-all', action='store_true', help='Показать содержимое страницы')
     parser.add_argument('-hr', '--hide-responses', type=int, nargs='+', help='Скрыть ответы с этими кодами состояния')
-
+    parser.add_argument('-k', '--keys', nargs='+', help='Ключи для извлечения из JSON ответа')
     args = parser.parse_args()
 
     headers = {h.split(':')[0]: h.split(':')[1].strip() for h in args.header} if args.header else None
@@ -98,7 +105,8 @@ def main():
         cookies=cookies,
         method=args.method,
         show_all=args.show_all,
-        hide_responses=args.hide_responses
+        hide_responses=args.hide_responses,
+        keys=args.keys
     )
 
 if __name__ == "__main__":
