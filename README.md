@@ -57,3 +57,6 @@ Examples
 Использование пользовательских заголовков и cookies:
 
     python kfuz.py -u "http://example.com/FUZZ" -w wordlist.txt -H "User-Agent: custom" -b "sessionid=abc123"
+
+Вывод и сортировка ответов JSON:
+    python kfuz.py -u "http://example.com/FUZZ" -w wordlist.txt -sa -k 'id'
