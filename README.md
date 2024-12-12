@@ -48,12 +48,12 @@ Examples
 
 Фазинг с использованием списка слов:
 
-    python fuzzing_script.py -u "http://example.com/FUZZ" -w wordlist.txt
+    python kfuz.py -u "http://example.com/FUZZ" -w wordlist.txt
     
 Фазинг с использованием диапазона чисел:
 
-    python fuzzing_script.py -u "http://example.com/FUZZ" -r "1-100"
+    python kfuz.py -u "http://example.com/FUZZ" -r "1-100"
 
 Использование пользовательских заголовков и cookies:
 
-    python fuzzing_script.py -u "http://example.com/FUZZ" -w wordlist.txt -H "User-Agent: custom" -b "sessionid=abc123"
+    python kfuz.py -u "http://example.com/FUZZ" -w wordlist.txt -H "User-Agent: custom" -b "sessionid=abc123"
