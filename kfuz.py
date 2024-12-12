@@ -40,7 +40,7 @@ def get_status_color(status_code):
     else:
         return Colors.FAIL
 
-def fuzz_url(base_url, wordlist=None, range_numbers=None, headers=None, cookies=None, method='GET', show_all=False, hide_responses=None, keys=None):
+def fuzz_url(base_url, wordlist=None, range_numbers=None, headers=None, cookies=None, method='GET', show_all=False, hide_responses=None, keys=None, extensions=None):
     if 'FUZZ' not in base_url:
         raise ValueError("Базовый URL должен содержать точку вставки 'FUZZ'.")
 
@@ -53,26 +53,36 @@ def fuzz_url(base_url, wordlist=None, range_numbers=None, headers=None, cookies=
     else:
         raise ValueError("Необходимо указать либо список слов, либо диапазон.")
 
+    # Обработка ключа -x
+    if extensions is None:
+        # Если ключ -x не указан, сканирование без проверки расширений
+        extensions = ['']
+    elif len(extensions) == 0:
+        # Если ключ -x указан, но пустой, проверяем все расширения
+        extensions = ['.html', '.php', '.asp', '.aspx', '.jsp', '.json', '.xml', '.txt', '.js', '.css']
+    # Если указаны конкретные расширения, используем их
+
     for path in paths:
-        url = base_url.replace('FUZZ', path)
-        try:
-            response = requests.request(method, url, headers=headers, cookies=cookies)
-            if hide_responses and response.status_code in hide_responses:
-                continue
-            status_color = get_status_color(response.status_code)
-            print_separator()
-            print(f"{Colors.BOLD}URL:{Colors.ENDC} {Colors.FAIL}{url}{Colors.ENDC} | {Colors.BOLD}Код:{Colors.ENDC} {status_color}{response.status_code}{Colors.ENDC}")
-            if show_all:
-                if keys:
-                    # Extract and display only the specified keys
-                    response_json = response.json()
-                    filtered_response = {key: response_json.get(key) for key in keys}
-                    print(f"{Colors.OKGREEN}{filtered_response}{Colors.ENDC}")
-                else:
-                    print(f"{Colors.OKGREEN}{response.text}{Colors.ENDC}")
-        except requests.RequestException as e:
-            print_separator()
-            print(f"{Colors.FAIL}Ошибка с URL {url}: {e}{Colors.ENDC}")
+        for ext in extensions:
+            url = base_url.replace('FUZZ', path + ext)
+            try:
+                response = requests.request(method, url, headers=headers, cookies=cookies)
+                if hide_responses and response.status_code in hide_responses:
+                    continue
+                status_color = get_status_color(response.status_code)
+                print_separator()
+                print(f"{Colors.BOLD}URL:{Colors.ENDC} {Colors.FAIL}{url}{Colors.ENDC} | {Colors.BOLD}Код:{Colors.ENDC} {status_color}{response.status_code}{Colors.ENDC}")
+                if show_all:
+                    if keys:
+                        # Extract and display only the specified keys
+                        response_json = response.json()
+                        filtered_response = {key: response_json.get(key) for key in keys}
+                        print(f"{Colors.OKGREEN}{filtered_response}{Colors.ENDC}")
+                    else:
+                        print(f"{Colors.OKGREEN}{response.text}{Colors.ENDC}")
+            except requests.RequestException as e:
+                print_separator()
+                print(f"{Colors.FAIL}Ошибка с URL {url}: {e}{Colors.ENDC}")
     
 
 def signal_handler(sig, frame):
@@ -92,11 +102,12 @@ def main():
     parser.add_argument('-sa', '--show-all', action='store_true', help='Показать содержимое страницы')
     parser.add_argument('-hr', '--hide-responses', type=int, nargs='+', help='Скрыть ответы с этими кодами состояния')
     parser.add_argument('-k', '--keys', nargs='+', help='Ключи для извлечения из JSON ответа')
+    parser.add_argument('-x', '--extensions', nargs='*', help='Расширения файлов для добавления к фаззингу')
     args = parser.parse_args()
 
     headers = {h.split(':')[0]: h.split(':')[1].strip() for h in args.header} if args.header else None
     cookies = {c.split('=')[0]: c.split('=')[1] for c in args.cookie} if args.cookie else None
-
+  
     fuzz_url(
         base_url=args.url,
         wordlist=args.wordlist,
@@ -106,7 +117,8 @@ def main():
         method=args.method,
         show_all=args.show_all,
         hide_responses=args.hide_responses,
-        keys=args.keys
+        keys=args.keys,
+        extensions=args.extensions
     )
 
 if __name__ == "__main__":
