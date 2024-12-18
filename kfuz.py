@@ -55,9 +55,11 @@ def fuzz_url(
     hide_responses=None,
     keys=None,
     extensions=None,
+    payload=None,
+    fuzz_data=None,
 ):
-    if "FUZZ" not in base_url:
-        raise ValueError("Базовый URL должен содержать точку вставки 'FUZZ'.")
+    if "FUZZ" not in base_url and "FUZZ" not in (payload or "") and "FUZZ" not in (fuzz_data or ""):
+        raise ValueError("Должна быть точка вставки 'FUZZ' в базовом URL, в данных для POST или в данных формы.")
 
     if wordlist:
         with open(wordlist, "r") as f:
@@ -68,12 +70,9 @@ def fuzz_url(
     else:
         raise ValueError("Необходимо указать либо список слов, либо диапазон.")
 
-    # Обработка ключа -x
     if extensions is None:
-        # Если ключ -x не указан, сканирование без проверки расширений
         extensions = [""]
     elif len(extensions) == 0:
-        # Если ключ -x указан, но пустой, проверяем все расширения
         extensions = [
             ".html",
             ".php",
@@ -86,14 +85,15 @@ def fuzz_url(
             ".js",
             ".css",
         ]
-    # Если указаны конкретные расширения, используем их
 
     for path in paths:
         for ext in extensions:
             url = base_url.replace("FUZZ", path + ext)
+            data = payload.replace("FUZZ", path + ext) if payload else None
+            form_data = fuzz_data.replace("FUZZ", path + ext) if fuzz_data else None
             try:
                 response = requests.request(
-                    method, url, headers=headers, cookies=cookies
+                    method, url, headers=headers, cookies=cookies, data=data or form_data
                 )
                 if hide_responses and response.status_code in hide_responses:
                     continue
@@ -104,7 +104,6 @@ def fuzz_url(
                 )
                 if show_all:
                     if keys:
-                        # Extract and display only the specified keys
                         response_json = response.json()
                         filtered_response = {
                             key: response_json.get(key) for key in keys
@@ -126,7 +125,6 @@ def signal_handler(sig, frame):
 
 def main():
     signal.signal(signal.SIGINT, signal_handler)
-
     parser = argparse.ArgumentParser(description="Скрипт для фазинга веб-страниц.")
     parser.add_argument(
         "-u",
@@ -173,6 +171,16 @@ def main():
         nargs="*",
         help="Расширения файлов для добавления к фаззингу",
     )
+    parser.add_argument(
+        "-d",
+        "--data",
+        help="Полезная нагрузка для POST-запросов",
+    )
+    parser.add_argument(
+        "-fd",
+        "--fuzz-data",
+        help="Фазинг данных формы с точкой вставки FUZZ",
+    )
     args = parser.parse_args()
 
     headers = (
@@ -195,6 +203,8 @@ def main():
         hide_responses=args.hide_responses,
         keys=args.keys,
         extensions=args.extensions,
+        payload=args.data,
+        fuzz_data=args.fuzz_data, 
     )
 
 
